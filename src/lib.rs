@@ -212,3 +212,32 @@ pub use crate::{
     systems::{Resources, Schedule, SystemBuilder},
     world::{Entity, EntityStore, World, WorldOptions},
 };
+
+/// A place to add entities into.
+pub trait PushEntity {
+    /// Queues the insertion of a single entity into the world.
+    fn push<T>(&mut self, components: T) -> Entity
+    where
+        Option<T>: 'static + storage::IntoComponentSource,
+        <Option<T> as storage::IntoComponentSource>::Source: internals::insert::KnownLength + Send + Sync;
+}
+
+impl PushEntity for world::World {
+    fn push<T>(&mut self, components: T) -> Entity
+    where
+        Option<T>: 'static + storage::IntoComponentSource,
+        <Option<T> as storage::IntoComponentSource>::Source: internals::insert::KnownLength + Send + Sync
+        {
+            world::World::push(self, components)
+        }
+}
+
+impl PushEntity for systems::CommandBuffer {
+    fn push<T>(&mut self, components: T) -> Entity
+    where
+        Option<T>: 'static + storage::IntoComponentSource,
+        <Option<T> as storage::IntoComponentSource>::Source: internals::insert::KnownLength + Send + Sync
+        {
+            systems::CommandBuffer::push(self, components)
+        }
+}
